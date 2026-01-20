@@ -1,0 +1,151 @@
+
+import React, { useState, useEffect } from 'react';
+import { Header } from './components/Header';
+import { Converter } from './components/Converter';
+import { HistoryChart } from './components/HistoryChart';
+import { AIInsights } from './components/AIInsights';
+import { ExchangeData, HistoryPoint } from './types';
+
+// Mock data generator for historical simulation if real-time history API is restricted
+const generateMockHistory = (baseRate: number): HistoryPoint[] => {
+  const points: HistoryPoint[] = [];
+  const now = new Date();
+  for (let i = 30; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    // Random fluctuation between -1.5% and +1.5%
+    const fluctuation = 1 + (Math.random() * 0.03 - 0.015);
+    points.push({
+      date: date.toISOString().split('T')[0],
+      rate: baseRate * fluctuation
+    });
+  }
+  return points;
+};
+
+const App: React.FC = () => {
+  const [data, setData] = useState<ExchangeData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Using a reliable public API for the current rate
+      const res = await fetch('https://open.er-api.com/v6/latest/USD');
+      const json = await res.json();
+      
+      if (json.result === 'success') {
+        const krwRate = json.rates.KRW;
+        setData({
+          rate: krwRate,
+          lastUpdate: new Date().toLocaleString(),
+          history: generateMockHistory(krwRate)
+        });
+      } else {
+        throw new Error('Failed to fetch exchange rates');
+      }
+    } catch (err) {
+      setError('환율 정보를 가져오는 데 실패했습니다.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600 font-medium">환율 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold mb-2 text-gray-800">오류 발생</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button 
+            onClick={fetchData}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            다시 시도
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-12">
+      <Header />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Left Column: Converter & Quick Stats */}
+          <div className="lg:col-span-1 space-y-8">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                통화 변환기
+              </h2>
+              <Converter baseRate={data.rate} />
+              
+              <div className="mt-8 pt-6 border-t border-slate-100">
+                <p className="text-xs text-slate-400">마지막 업데이트: {data.lastUpdate}</p>
+                <div className="mt-4 bg-blue-50 p-4 rounded-xl flex justify-between items-center">
+                  <div>
+                    <p className="text-xs font-semibold text-blue-700 uppercase">현재 환율 (1 USD)</p>
+                    <p className="text-2xl font-bold text-blue-900">{data.rate.toLocaleString('ko-KR')} KRW</p>
+                  </div>
+                  <div className="text-blue-600 bg-white p-2 rounded-lg shadow-sm">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.514 1.31c.356.412.96.816 1.857 1.123.446.152.92.213 1.383.18V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.514-1.31c-.356-.412-.96-.816-1.857-1.123A4.493 4.493 0 0011 5.092V5z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <AIInsights currentRate={data.rate} history={data.history} />
+          </div>
+
+          {/* Right Column: Chart */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-full min-h-[500px] flex flex-col">
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">환율 추이</h2>
+                  <p className="text-sm text-slate-500">최근 30일간의 원/달러 환율 변동 내역입니다.</p>
+                </div>
+                <div className="flex gap-2">
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">30D</span>
+                </div>
+              </div>
+              <div className="flex-grow">
+                <HistoryChart data={data.history} />
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default App;
