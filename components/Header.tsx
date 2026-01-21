@@ -10,15 +10,13 @@ export const Header: React.FC = () => {
             ₩
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 leading-tight">FX Insights</h1>
-            <p className="text-xs text-slate-500 font-medium tracking-wide uppercase">KRW / USD Analytics</p>
+            <h1 className="text-xl font-bold text-slate-900 leading-tight">환율 인사이트</h1>
+            <p className="text-xs text-slate-500 font-medium tracking-wide uppercase">원/달러 분석</p>
           </div>
         </div>
         
         <nav className="hidden md:flex gap-6">
           <a href="#" className="text-sm font-semibold text-blue-600 border-b-2 border-blue-600 pb-1">Dashboard</a>
-          <a href="#" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Market News</a>
-          <a href="#" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Forex Education</a>
         </nav>
 
         <div className="flex gap-4">

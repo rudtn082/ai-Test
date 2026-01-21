@@ -1,23 +1,24 @@
 
 import React from 'react';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   AreaChart,
-  Area
+  Area,
+  BarChart,
+  Bar
 } from 'recharts';
 import { HistoryPoint } from '../types';
 
 interface Props {
   data: HistoryPoint[];
+  chartType: 'area' | 'bar';
 }
 
-export const HistoryChart: React.FC<Props> = ({ data }) => {
+export const HistoryChart: React.FC<Props> = ({ data, chartType }) => {
   // Calculate domain for Y axis to make fluctuations visible
   const rates = data.map(p => p.rate);
   const min = Math.min(...rates) * 0.995;
@@ -40,39 +41,66 @@ export const HistoryChart: React.FC<Props> = ({ data }) => {
   return (
     <div className="w-full h-full min-h-[400px]">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data}>
-          <defs>
-            <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
-              <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-          <XAxis 
-            dataKey="date" 
-            axisLine={false} 
-            tickLine={false} 
-            tick={{fontSize: 10, fill: '#94a3b8'}}
-            minTickGap={30}
-          />
-          <YAxis 
-            domain={[min, max]} 
-            axisLine={false} 
-            tickLine={false} 
-            tick={{fontSize: 10, fill: '#94a3b8'}}
-            orientation="right"
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Area 
-            type="monotone" 
-            dataKey="rate" 
-            stroke="#2563eb" 
-            strokeWidth={3}
-            fillOpacity={1} 
-            fill="url(#colorRate)" 
-            animationDuration={1500}
-          />
-        </AreaChart>
+        {chartType === 'area' ? (
+          <AreaChart data={data}>
+            <defs>
+              <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
+                <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <XAxis
+              dataKey="date"
+              axisLine={false}
+              tickLine={false}
+              tick={{fontSize: 10, fill: '#94a3b8'}}
+              minTickGap={30}
+            />
+            <YAxis
+              domain={[min, max]}
+              axisLine={false}
+              tickLine={false}
+              tick={{fontSize: 10, fill: '#94a3b8'}}
+              orientation="right"
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Area
+              type="monotone"
+              dataKey="rate"
+              stroke="#2563eb"
+              strokeWidth={3}
+              fillOpacity={1}
+              fill="url(#colorRate)"
+              animationDuration={1500}
+            />
+          </AreaChart>
+        ) : (
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <XAxis
+              dataKey="date"
+              axisLine={false}
+              tickLine={false}
+              tick={{fontSize: 10, fill: '#94a3b8'}}
+              minTickGap={30}
+            />
+            <YAxis
+              domain={[min, max]}
+              axisLine={false}
+              tickLine={false}
+              tick={{fontSize: 10, fill: '#94a3b8'}}
+              orientation="right"
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar
+              dataKey="rate"
+              fill="#2563eb"
+              radius={[4, 4, 0, 0]}
+              animationDuration={1500}
+            />
+          </BarChart>
+        )}
       </ResponsiveContainer>
     </div>
   );

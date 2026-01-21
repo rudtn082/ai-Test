@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(curl:*)",
+      "Bash(export NODE_TLS_REJECT_UNAUTHORIZED=0)",
+      "Bash(export PATH=\"/c/Users/kyungsoo.park/npm-global:/c/Program Files/nodejs:$PATH\")",
+      "Bash(vercel:*)"
+    ]
+  }
+}

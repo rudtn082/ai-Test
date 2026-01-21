@@ -27,6 +27,8 @@ const App: React.FC = () => {
   const [data, setData] = useState<ExchangeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [period, setPeriod] = useState<'7D' | '30D'>('30D');
+  const [chartType, setChartType] = useState<'area' | 'bar'>('area');
 
   const fetchData = async () => {
     setLoading(true);
@@ -130,14 +132,55 @@ const App: React.FC = () => {
               <div className="flex justify-between items-center mb-8">
                 <div>
                   <h2 className="text-xl font-bold text-slate-800">환율 추이</h2>
-                  <p className="text-sm text-slate-500">최근 30일간의 원/달러 환율 변동 내역입니다.</p>
+                  <p className="text-sm text-slate-500">최근 {period === '7D' ? '7' : '30'}일간의 원/달러 환율 변동 내역입니다.</p>
                 </div>
-                <div className="flex gap-2">
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">30D</span>
+                <div className="flex items-center gap-3">
+                  {/* Chart Type Toggle */}
+                  <button
+                    onClick={() => setChartType(chartType === 'area' ? 'bar' : 'area')}
+                    className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+                    title={chartType === 'area' ? '막대 그래프로 전환' : '영역 그래프로 전환'}
+                  >
+                    {chartType === 'area' ? (
+                      <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                      </svg>
+                    )}
+                  </button>
+                  {/* Period Toggle */}
+                  <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+                    <button
+                      onClick={() => setPeriod('7D')}
+                      className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${
+                        period === '7D'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      7D
+                    </button>
+                    <button
+                      onClick={() => setPeriod('30D')}
+                      className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${
+                        period === '30D'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      30D
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="flex-grow">
-                <HistoryChart data={data.history} />
+                <HistoryChart
+                  data={period === '7D' ? data.history.slice(-7) : data.history}
+                  chartType={chartType}
+                />
               </div>
             </div>
           </div>
