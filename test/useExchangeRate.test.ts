@@ -64,7 +64,7 @@ describe('useExchangeRate', () => {
   });
 
   it('should handle fetch error', async () => {
-    vi.spyOn(global, 'fetch').mockRejectedValue(new TypeError('Network error'));
+    vi.spyOn(global, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'));
 
     const { result } = renderHook(() => useExchangeRate());
 

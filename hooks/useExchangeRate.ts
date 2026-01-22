@@ -41,7 +41,10 @@ function formatDateString(date: Date): string {
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof TypeError) {
-    return '네트워크 연결을 확인해주세요.';
+    if (error.message.includes('fetch')) {
+      return '네트워크 연결을 확인해주세요.';
+    }
+    return `데이터 처리 오류: ${error.message}`;
   }
   if (error instanceof Error) {
     return error.message;
@@ -112,6 +115,7 @@ export function useExchangeRate(): UseExchangeRateReturn {
       }
       
       const history: HistoryPoint[] = Object.entries(historyJson.rates)
+        .filter(([, rates]) => rates && typeof rates.KRW === 'number')
         .map(([date, rates]) => ({
           date,
           rate: rates.KRW
