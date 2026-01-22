@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo, memo } from 'react';
 import {
   XAxis,
   YAxis,
@@ -9,7 +9,7 @@ import {
   AreaChart,
   Area,
   BarChart,
-  Bar
+  Bar,
 } from 'recharts';
 import { HistoryPoint } from '../types';
 
@@ -18,25 +18,38 @@ interface Props {
   chartType: 'area' | 'bar';
 }
 
-export const HistoryChart: React.FC<Props> = ({ data, chartType }) => {
-  // Calculate domain for Y axis to make fluctuations visible
-  const rates = data.map(p => p.rate);
-  const min = Math.min(...rates) * 0.995;
-  const max = Math.max(...rates) * 1.005;
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ value: number; dataKey: string; payload: HistoryPoint }>;
+  label?: string;
+}
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 border border-slate-200 shadow-xl rounded-lg">
-          <p className="text-xs text-slate-500 mb-1">{label}</p>
-          <p className="text-sm font-bold text-blue-600">
-            {payload[0].value.toLocaleString('ko-KR')} KRW
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
+function CustomTooltip({ active, payload, label }: CustomTooltipProps): React.ReactElement | null {
+  if (active && payload && payload.length > 0) {
+    const firstPayload = payload[0];
+    return (
+      <div className="bg-white dark:bg-slate-800 p-3 border border-slate-200 dark:border-slate-600 shadow-xl rounded-lg">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{label}</p>
+        <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
+          {firstPayload.value.toLocaleString('ko-KR')} KRW
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
+
+const DOMAIN_MARGIN = 0.005;
+
+export const HistoryChart: React.FC<Props> = memo(function HistoryChart({ data, chartType }) {
+  const { min, max } = useMemo(() => {
+    if (data.length === 0) return { min: 0, max: 0 };
+    const rates = data.map(p => p.rate);
+    return {
+      min: Math.min(...rates) * (1 - DOMAIN_MARGIN),
+      max: Math.max(...rates) * (1 + DOMAIN_MARGIN)
+    };
+  }, [data]);
 
   return (
     <div className="w-full h-full min-h-[400px]">
@@ -104,4 +117,4 @@ export const HistoryChart: React.FC<Props> = ({ data, chartType }) => {
       </ResponsiveContainer>
     </div>
   );
-};
+});
