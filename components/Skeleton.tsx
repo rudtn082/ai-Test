@@ -57,27 +57,41 @@ export const ChartSkeleton: React.FC = () => (
   </div>
 );
 
-export const AIInsightsSkeleton: React.FC = () => (
-  <div className="space-y-6">
-    <div className="flex items-center gap-2 mb-6">
-      <Skeleton className="h-8 w-8 rounded-lg" />
-      <Skeleton className="h-5 w-36" />
+export const StatisticsSkeleton: React.FC = () => (
+  <div className="space-y-4">
+    <div className="flex items-center gap-2 mb-4">
+      <Skeleton className="h-5 w-5" />
+      <Skeleton className="h-5 w-24" />
     </div>
-    <Skeleton className="h-20 w-full rounded-xl" />
-    <div>
-      <Skeleton className="h-3 w-16 mb-2" />
-      <Skeleton className="h-4 w-full mb-1" />
-      <Skeleton className="h-4 w-3/4" />
+    <div className="grid grid-cols-2 gap-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50">
+          <Skeleton className="h-3 w-16 mb-2" />
+          <Skeleton className="h-6 w-24" />
+        </div>
+      ))}
     </div>
-    <div>
-      <Skeleton className="h-3 w-24 mb-3" />
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-5/6" />
-        <Skeleton className="h-4 w-4/5" />
-      </div>
+  </div>
+);
+
+export const NewsSkeleton: React.FC = () => (
+  <div className="space-y-4">
+    <div className="flex items-center gap-2 mb-4">
+      <Skeleton className="h-5 w-5" />
+      <Skeleton className="h-5 w-24" />
     </div>
-    <Skeleton className="h-16 w-full rounded-xl" />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+          <Skeleton className="h-4 w-full mb-2" />
+          <Skeleton className="h-4 w-3/4 mb-3" />
+          <div className="flex justify-between">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+        </div>
+      ))}
+    </div>
   </div>
 );
 
@@ -116,7 +130,7 @@ export const AppSkeleton: React.FC = () => (
           </div>
           
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-            <AIInsightsSkeleton />
+            <StatisticsSkeleton />
           </div>
         </div>
 

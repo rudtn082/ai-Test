@@ -2,13 +2,14 @@
 import React, { lazy, Suspense } from 'react';
 import { Header } from './components/Header';
 import { Converter } from './components/Converter';
-import { AppSkeleton, AIInsightsSkeleton, ChartSkeleton } from './components/Skeleton';
+import { AppSkeleton, ChartSkeleton, StatisticsSkeleton, NewsSkeleton } from './components/Skeleton';
 import { ToastContainer } from './components/Toast';
 import { useExchangeRate } from './hooks/useExchangeRate';
 import { useToast } from './hooks/useToast';
 
 const HistoryChart = lazy(() => import('./components/HistoryChart').then(m => ({ default: m.HistoryChart })));
-const AIInsights = lazy(() => import('./components/AIInsights').then(m => ({ default: m.AIInsights })));
+const RateStatistics = lazy(() => import('./components/RateStatistics').then(m => ({ default: m.RateStatistics })));
+const ExchangeNews = lazy(() => import('./components/ExchangeNews').then(m => ({ default: m.ExchangeNews })));
 
 const App: React.FC = () => {
   const {
@@ -101,8 +102,8 @@ const App: React.FC = () => {
               </div>
             </div>
             
-            <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6"><AIInsightsSkeleton /></div>}>
-              <AIInsights currentRate={data.rate} history={data.history} />
+            <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6"><StatisticsSkeleton /></div>}>
+              <RateStatistics history={filteredHistory} />
             </Suspense>
           </div>
 
@@ -168,6 +169,12 @@ const App: React.FC = () => {
             </div>
           </div>
 
+        </div>
+
+        <div className="mt-8">
+          <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6"><NewsSkeleton /></div>}>
+            <ExchangeNews />
+          </Suspense>
         </div>
       </main>
       

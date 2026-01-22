@@ -2,19 +2,47 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { useExchangeRate } from '../hooks/useExchangeRate';
 
-const mockExchangeResponse = {
-  result: 'success',
+const mockLatestResponse = {
+  amount: 1,
+  base: 'USD',
+  date: '2024-01-20',
   rates: {
     KRW: 1350.5,
   },
 };
 
+const mockTimeseriesResponse = {
+  amount: 1,
+  base: 'USD',
+  start_date: '2023-12-21',
+  end_date: '2024-01-20',
+  rates: {
+    '2024-01-15': { KRW: 1340.0 },
+    '2024-01-16': { KRW: 1342.0 },
+    '2024-01-17': { KRW: 1345.0 },
+    '2024-01-18': { KRW: 1348.0 },
+    '2024-01-19': { KRW: 1349.0 },
+    '2024-01-20': { KRW: 1350.5 },
+  },
+};
+
 describe('useExchangeRate', () => {
   beforeEach(() => {
-    vi.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockExchangeResponse),
-    } as Response);
+    let callCount = 0;
+    vi.spyOn(global, 'fetch').mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockLatestResponse),
+        } as Response);
+      } else {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockTimeseriesResponse),
+        } as Response);
+      }
+    });
   });
 
   afterEach(() => {
@@ -71,14 +99,14 @@ describe('useExchangeRate', () => {
     });
 
     expect(result.current.period).toBe('30D');
-    expect(result.current.filteredHistory.length).toBe(31);
+    expect(result.current.filteredHistory.length).toBe(6);
 
     act(() => {
       result.current.handlePeriodChange('7D');
     });
 
     expect(result.current.period).toBe('7D');
-    expect(result.current.filteredHistory.length).toBe(7);
+    expect(result.current.filteredHistory.length).toBe(6);
   });
 
   it('should toggle chart type', async () => {

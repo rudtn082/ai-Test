@@ -15,9 +15,17 @@ export enum Currency {
   KRW = 'KRW'
 }
 
-export interface MarketInsight {
-  summary: string;
-  trend: 'UP' | 'DOWN' | 'STABLE';
-  factors: string[];
-  recommendation: string;
+export interface RateStatistics {
+  high: number;
+  low: number;
+  average: number;
+  changeRate: number;
+  changeAmount: number;
+}
+
+export interface NewsItem {
+  title: string;
+  link: string;
+  pubDate: string;
+  source: string;
 }

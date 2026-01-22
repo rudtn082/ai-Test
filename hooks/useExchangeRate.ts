@@ -1,38 +1,42 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ExchangeData, HistoryPoint } from '../types';
 
-const FLUCTUATION_RANGE = 0.03;
 const HISTORY_DAYS = 30;
 
-function generateMockHistory(baseRate: number): HistoryPoint[] {
-  const points: HistoryPoint[] = [];
-  const now = new Date();
-  for (let i = HISTORY_DAYS; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    const fluctuation = 1 + (Math.random() * FLUCTUATION_RANGE - FLUCTUATION_RANGE / 2);
-    points.push({
-      date: date.toISOString().split('T')[0],
-      rate: baseRate * fluctuation
-    });
-  }
-  return points;
-}
-
-interface ExchangeApiResponse {
-  result: string;
-  rates?: {
+interface FrankfurterLatestResponse {
+  amount: number;
+  base: string;
+  date: string;
+  rates: {
     KRW?: number;
   };
 }
 
-function isValidExchangeResponse(data: unknown): data is ExchangeApiResponse {
+interface FrankfurterTimeseriesResponse {
+  amount: number;
+  base: string;
+  start_date: string;
+  end_date: string;
+  rates: Record<string, { KRW: number }>;
+}
+
+function isValidLatestResponse(data: unknown): data is FrankfurterLatestResponse {
   if (!data || typeof data !== 'object') return false;
   const obj = data as Record<string, unknown>;
-  return obj.result === 'success' && 
+  return typeof obj.date === 'string' && 
          typeof obj.rates === 'object' && 
          obj.rates !== null &&
          typeof (obj.rates as Record<string, unknown>).KRW === 'number';
+}
+
+function isValidTimeseriesResponse(data: unknown): data is FrankfurterTimeseriesResponse {
+  if (!data || typeof data !== 'object') return false;
+  const obj = data as Record<string, unknown>;
+  return typeof obj.rates === 'object' && obj.rates !== null;
+}
+
+function formatDateString(date: Date): string {
+  return date.toISOString().split('T')[0];
 }
 
 function getErrorMessage(error: unknown): string {
@@ -72,28 +76,52 @@ export function useExchangeRate(): UseExchangeRateReturn {
     setError(null);
     
     try {
-      const res = await fetch('https://open.er-api.com/v6/latest/USD');
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - HISTORY_DAYS);
       
-      if (!res.ok) {
-        throw new Error(`서버 오류가 발생했습니다. (${res.status})`);
+      const startDateStr = formatDateString(startDate);
+      const endDateStr = formatDateString(endDate);
+      
+      const [latestRes, historyRes] = await Promise.all([
+        fetch('https://api.frankfurter.app/latest?from=USD&to=KRW'),
+        fetch(`https://api.frankfurter.app/${startDateStr}..${endDateStr}?from=USD&to=KRW`)
+      ]);
+      
+      if (!latestRes.ok || !historyRes.ok) {
+        throw new Error(`서버 오류가 발생했습니다.`);
       }
       
-      let json: unknown;
+      let latestJson: unknown;
+      let historyJson: unknown;
       try {
-        json = await res.json();
+        [latestJson, historyJson] = await Promise.all([
+          latestRes.json(),
+          historyRes.json()
+        ]);
       } catch {
         throw new Error('서버 응답을 처리할 수 없습니다.');
       }
       
-      if (!isValidExchangeResponse(json)) {
+      if (!isValidLatestResponse(latestJson)) {
         throw new Error('유효하지 않은 환율 데이터입니다.');
       }
       
-      const krwRate = json.rates!.KRW!;
+      if (!isValidTimeseriesResponse(historyJson)) {
+        throw new Error('유효하지 않은 히스토리 데이터입니다.');
+      }
+      
+      const history: HistoryPoint[] = Object.entries(historyJson.rates)
+        .map(([date, rates]) => ({
+          date,
+          rate: rates.KRW
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+      
       setData({
-        rate: krwRate,
+        rate: latestJson.rates.KRW!,
         lastUpdate: new Date().toLocaleString('ko-KR'),
-        history: generateMockHistory(krwRate)
+        history
       });
     } catch (err) {
       setError(getErrorMessage(err));
