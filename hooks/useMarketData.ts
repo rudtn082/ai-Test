@@ -43,8 +43,10 @@ function isValidYahooResponse(data: unknown): data is YahooChartResponse {
 
 async function fetchYahooData(symbol: string): Promise<{ price: number; previousClose: number } | null> {
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d`;
-    const res = await fetch(url);
+    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d`;
+    // Use CORS proxy to bypass CORS restrictions
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`;
+    const res = await fetch(proxyUrl);
     
     if (!res.ok) return null;
     
