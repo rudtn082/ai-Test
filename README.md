@@ -1,23 +1,26 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 
 # KRW/USD Exchange Rate Insights
 
-**실시간 원/달러 환율 정보와 AI 기반 시장 분석 서비스**
+**실시간 원/달러 환율 정보와 다중 통화 비교 서비스**
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite)](https://vitejs.dev/)
 [![Vitest](https://img.shields.io/badge/Vitest-4.0-6E9F18?logo=vitest)](https://vitest.dev/)
 
+**[Live Demo](https://krw-usd-fx-insights.vercel.app)**
+
 </div>
 
 ## Features
 
-- **실시간 환율 조회** - open.er-api.com API를 통한 실시간 USD/KRW 환율 정보
+- **실시간 환율 조회** - frankfurter.app API를 통한 실시간 USD/KRW 환율 정보
 - **양방향 통화 변환기** - USD ↔ KRW 간편 환전 계산
-- **환율 추이 차트** - 최근 7일/30일 환율 변동 그래프 (Area/Bar 차트)
-- **AI 마켓 인사이트** - Google Gemini AI 기반 시장 분석 및 예측
+- **환율 추이 차트** - 최근 7일/30일 실제 환율 변동 그래프 (Area/Bar 차트)
+- **환율 통계** - 최고/최저/평균/변동률 통계 카드
+- **다중 통화 비교** - EUR, JPY, CNY 등 주요 통화 대비 상대적 변동률 비교 차트
+- **환율 뉴스** - Google News RSS를 통한 최신 환율 관련 뉴스 5개 표시
 - **다크 모드** - 시스템 설정 연동 및 수동 전환 지원
 - **반응형 디자인** - 모바일, 태블릿, 데스크톱 최적화
 
@@ -29,8 +32,9 @@
 | Build Tool | Vite 5.4 |
 | Styling | Tailwind CSS (CDN) |
 | Charts | Recharts 3.6 |
-| AI | Google Gemini API |
+| APIs | frankfurter.app (환율), Google News RSS (뉴스) |
 | Testing | Vitest 4.0, Testing Library |
+| Deployment | Vercel |
 
 ## Getting Started
 
@@ -38,29 +42,16 @@
 
 - Node.js 20.x or higher
 - npm 10.x or higher
-- Google Gemini API Key ([Get one here](https://aistudio.google.com/app/apikey))
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/rudtn082/ai-Test.git
 cd ai-Test
 
 # Install dependencies
 npm install
-
-# Set up environment variables
-cp .env.local.example .env.local
-# Edit .env.local and add your VITE_GEMINI_API_KEY
-```
-
-### Environment Variables
-
-Create a `.env.local` file in the project root:
-
-```env
-VITE_GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ### Development
@@ -89,29 +80,29 @@ npm run preview
 
 ```
 ai-Test/
-├── components/           # React components
-│   ├── AIInsights.tsx    # AI market analysis panel
-│   ├── Converter.tsx     # Currency converter
-│   ├── ErrorBoundary.tsx # Error boundary wrapper
-│   ├── Header.tsx        # App header with dark mode toggle
-│   ├── HistoryChart.tsx  # Exchange rate chart
-│   ├── Skeleton.tsx      # Loading skeleton components
-│   └── Toast.tsx         # Toast notification system
-├── hooks/                # Custom React hooks
-│   ├── useExchangeRate.ts # Exchange rate data fetching
-│   └── useToast.ts       # Toast state management
-├── services/
-│   └── geminiService.ts  # Gemini AI API integration
-├── test/                 # Test files
-│   ├── setup.ts          # Test configuration
+├── components/              # React components
+│   ├── ComparisonChart.tsx  # Multi-currency comparison chart
+│   ├── Converter.tsx        # Currency converter
+│   ├── ErrorBoundary.tsx    # Error boundary wrapper
+│   ├── ExchangeNews.tsx     # Exchange rate news from RSS
+│   ├── Header.tsx           # App header with dark mode toggle
+│   ├── HistoryChart.tsx     # Exchange rate history chart
+│   ├── RateStatistics.tsx   # Rate statistics cards
+│   ├── Skeleton.tsx         # Loading skeleton components
+│   └── Toast.tsx            # Toast notification system
+├── hooks/                   # Custom React hooks
+│   ├── useExchangeRate.ts   # Exchange rate data fetching & state
+│   └── useToast.ts          # Toast state management
+├── test/                    # Test files
+│   ├── setup.ts             # Test configuration
 │   ├── Converter.test.tsx
 │   ├── useExchangeRate.test.ts
 │   └── useToast.test.ts
-├── App.tsx               # Main application component
-├── index.tsx             # Application entry point
-├── types.ts              # TypeScript type definitions
-├── vite.config.ts        # Vite configuration
-└── vitest.config.ts      # Vitest configuration
+├── App.tsx                  # Main application component
+├── index.tsx                # Application entry point
+├── types.ts                 # TypeScript type definitions
+├── vite.config.ts           # Vite configuration
+└── vitest.config.ts         # Vitest configuration
 ```
 
 ## Architecture
@@ -119,25 +110,26 @@ ai-Test/
 ### Data Flow
 
 ```
-┌─────────────┐     ┌──────────────────┐     ┌─────────────┐
-│ Exchange    │────▶│ useExchangeRate  │────▶│ Components  │
-│ Rate API   │     │ (Custom Hook)     │     │ (UI)       │
-└─────────────┘     └──────────────────┘     └─────────────┘
-                           │
-                           ▼
-┌─────────────┐     ┌──────────────────┐
-│ Gemini AI  │◀────│ AIInsights       │
-│ API        │     │ Component        │
-└─────────────┘     └──────────────────┘
+┌─────────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ frankfurter.app     │────▶│ useExchangeRate  │────▶│ Components      │
+│ (Exchange Rate API) │     │ (Custom Hook)    │     │ (UI)            │
+└─────────────────────┘     └──────────────────┘     └─────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────┐     ┌──────────────────┐
+│ Google News RSS     │────▶│ ExchangeNews     │
+│ (via rss2json)      │     │ Component        │
+└─────────────────────┘     └──────────────────┘
 ```
 
 ### Code Splitting
 
 The application uses React.lazy() for code splitting:
 
-- `HistoryChart` - Loaded when chart is needed (~360KB)
-- `AIInsights` - Loaded when AI panel is needed (~52KB)
-- Main bundle - Core application (~218KB)
+- `HistoryChart` - Loaded when chart is rendered
+- `RateStatistics` - Loaded with statistics data
+- `ComparisonChart` - Loaded for multi-currency comparison
+- `ExchangeNews` - Loaded for news section
 
 ## Testing
 
@@ -162,8 +154,7 @@ npm run test:coverage
 
 ## Security
 
-- **API Key Protection** - Environment variables with `VITE_` prefix
-- **CSP Headers** - Content Security Policy configured
+- **CSP Headers** - Content Security Policy configured for API endpoints
 - **Input Validation** - User input sanitization and limits
 - **Type Safety** - Strict TypeScript configuration
 
@@ -180,6 +171,7 @@ MIT License
 
 ## Acknowledgments
 
-- Exchange rate data provided by [open.er-api.com](https://open.er-api.com/)
-- AI insights powered by [Google Gemini](https://ai.google.dev/)
+- Exchange rate data provided by [frankfurter.app](https://www.frankfurter.app/)
+- News feed via [rss2json](https://rss2json.com/)
 - Charts built with [Recharts](https://recharts.org/)
+- Deployed on [Vercel](https://vercel.com/)
