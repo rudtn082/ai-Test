@@ -21,6 +21,7 @@
 - **환율 통계** - 최고/최저/평균/변동률 통계 카드
 - **다중 통화 비교** - EUR, JPY, CNY 등 주요 통화 대비 상대적 변동률 비교 차트
 - **환율 뉴스** - Google News RSS를 통한 최신 환율 관련 뉴스 5개 표시
+- **시장 지표** - WTI 유가 및 KOSPI 지수 실시간 정보
 - **다크 모드** - 시스템 설정 연동 및 수동 전환 지원
 - **반응형 디자인** - 모바일, 태블릿, 데스크톱 최적화
 
@@ -32,7 +33,7 @@
 | Build Tool | Vite 5.4 |
 | Styling | Tailwind CSS (CDN) |
 | Charts | Recharts 3.6 |
-| APIs | frankfurter.app (환율), Google News RSS (뉴스) |
+| APIs | frankfurter.app (환율), Google News RSS (뉴스), Yahoo Finance (시장 지표) |
 | Testing | Vitest 4.0, Testing Library |
 | Deployment | Vercel |
 
@@ -88,10 +89,12 @@ ai-Test/
 │   ├── Header.tsx           # App header with dark mode toggle
 │   ├── HistoryChart.tsx     # Exchange rate history chart
 │   ├── RateStatistics.tsx   # Rate statistics cards
+│   ├── MarketIndicators.tsx # WTI oil price and KOSPI index cards
 │   ├── Skeleton.tsx         # Loading skeleton components
 │   └── Toast.tsx            # Toast notification system
 ├── hooks/                   # Custom React hooks
 │   ├── useExchangeRate.ts   # Exchange rate data fetching & state
+│   ├── useMarketData.ts     # WTI and KOSPI data fetching
 │   └── useToast.ts          # Toast state management
 ├── test/                    # Test files
 │   ├── setup.ts             # Test configuration
@@ -173,5 +176,6 @@ MIT License
 
 - Exchange rate data provided by [frankfurter.app](https://www.frankfurter.app/)
 - News feed via [rss2json](https://rss2json.com/)
+- Market data via [Yahoo Finance](https://finance.yahoo.com/)
 - Charts built with [Recharts](https://recharts.org/)
 - Deployed on [Vercel](https://vercel.com/)

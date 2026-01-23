@@ -2,9 +2,11 @@
 import React, { lazy, Suspense } from 'react';
 import { Header } from './components/Header';
 import { Converter } from './components/Converter';
+import { MarketIndicators } from './components/MarketIndicators';
 import { AppSkeleton, ChartSkeleton, StatisticsSkeleton, NewsSkeleton } from './components/Skeleton';
 import { ToastContainer } from './components/Toast';
 import { useExchangeRate } from './hooks/useExchangeRate';
+import { useMarketData } from './hooks/useMarketData';
 import { useToast } from './hooks/useToast';
 
 const HistoryChart = lazy(() => import('./components/HistoryChart').then(m => ({ default: m.HistoryChart })));
@@ -24,6 +26,13 @@ const App: React.FC = () => {
     handlePeriodChange,
     handleChartTypeToggle,
   } = useExchangeRate();
+
+  const { 
+    data: marketData, 
+    loading: marketLoading, 
+    error: marketError, 
+    refetch: refetchMarket 
+  } = useMarketData();
 
   const { toasts, addToast, removeToast } = useToast();
 
@@ -106,6 +115,13 @@ const App: React.FC = () => {
             <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6"><StatisticsSkeleton /></div>}>
               <RateStatistics history={filteredHistory} />
             </Suspense>
+
+            <MarketIndicators 
+              data={marketData} 
+              loading={marketLoading} 
+              error={marketError} 
+              onRetry={refetchMarket} 
+            />
           </div>
 
           <div className="lg:col-span-2 space-y-8">

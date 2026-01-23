@@ -28,10 +28,12 @@ ai-Test/
 │   ├── Header.tsx           # App header with dark mode toggle
 │   ├── HistoryChart.tsx     # Exchange rate chart (lazy loaded)
 │   ├── RateStatistics.tsx   # Rate statistics cards (lazy loaded)
+│   ├── MarketIndicators.tsx # WTI oil price and KOSPI index cards
 │   ├── Skeleton.tsx         # Loading skeleton components
 │   └── Toast.tsx            # Toast notification system
 ├── hooks/                   # Custom React hooks
 │   ├── useExchangeRate.ts   # Exchange rate data fetching & state
+│   ├── useMarketData.ts     # WTI and KOSPI data fetching
 │   └── useToast.ts          # Toast state management
 ├── test/                    # Vitest test files
 ├── App.tsx                  # Main application component
@@ -49,6 +51,8 @@ ai-Test/
 - `components/RateStatistics.tsx` - Statistics cards showing high/low/average/change rate
 - `components/ComparisonChart.tsx` - Multi-currency comparison chart (EUR, JPY, CNY vs USD)
 - `components/ExchangeNews.tsx` - Latest exchange rate news via Google News RSS
+- `components/MarketIndicators.tsx` - WTI oil price and KOSPI index cards
+- `hooks/useMarketData.ts` - Custom hook for fetching WTI and KOSPI data from Yahoo Finance
 - `components/Skeleton.tsx` - Loading skeleton components for better UX
 - `components/Toast.tsx` - Toast notification system with 4 types (success/error/warning/info)
 - `components/ErrorBoundary.tsx` - Error boundary for graceful error handling
@@ -91,6 +95,7 @@ Tests are in `test/` directory using Vitest and Testing Library:
 
 - **frankfurter.app** - Free exchange rate API (no key required)
 - **rss2json.com** - RSS to JSON proxy for Google News
+- **query1.finance.yahoo.com** - WTI oil price and KOSPI index data (unofficial, free)
 
 ### Deployment
 
