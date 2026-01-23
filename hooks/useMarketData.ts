@@ -42,26 +42,32 @@ function isValidYahooResponse(data: unknown): data is YahooChartResponse {
 }
 
 async function fetchYahooData(symbol: string): Promise<{ price: number; previousClose: number } | null> {
-  try {
-    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d`;
-    // Use CORS proxy to bypass CORS restrictions
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`;
-    const res = await fetch(proxyUrl);
-    
-    if (!res.ok) return null;
-    
-    const data: unknown = await res.json();
-    
-    if (!isValidYahooResponse(data) || !data.chart.result) return null;
-    
-    const result = data.chart.result[0];
-    const price = result.meta.regularMarketPrice;
-    const previousClose = result.meta.chartPreviousClose;
-    
-    return { price, previousClose };
-  } catch {
-    return null;
+  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d`;
+  
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`,
+    `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`,
+  ];
+  
+  for (const proxyUrl of proxies) {
+    try {
+      const res = await fetch(proxyUrl);
+      if (!res.ok) continue;
+      
+      const data: unknown = await res.json();
+      if (!isValidYahooResponse(data) || !data.chart.result) continue;
+      
+      const result = data.chart.result[0];
+      const price = result.meta.regularMarketPrice;
+      const previousClose = result.meta.chartPreviousClose;
+      
+      return { price, previousClose };
+    } catch {
+      continue;
+    }
   }
+  
+  return null;
 }
 
 export function useMarketData() {
