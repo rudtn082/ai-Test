@@ -82,12 +82,15 @@ export const ExchangeNews: React.FC = () => {
         throw new Error('뉴스 데이터 형식이 올바르지 않습니다.');
       }
       
-      const newsItems: NewsItem[] = data.items.slice(0, NEWS_COUNT).map((item) => ({
-        title: cleanTitle(item.title),
-        link: item.link,
-        pubDate: item.pubDate,
-        source: extractSource(item)
-      }));
+      const newsItems: NewsItem[] = data.items
+        .map((item) => ({
+          title: cleanTitle(item.title),
+          link: item.link,
+          pubDate: item.pubDate,
+          source: extractSource(item)
+        }))
+        .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
+        .slice(0, NEWS_COUNT);
       
       cachedNews = newsItems;
       cacheTimestamp = now;
