@@ -1,8 +1,10 @@
 
 export interface ExchangeData {
   rate: number;
+  rates: MultiCurrencyRates;
   lastUpdate: string;
   history: HistoryPoint[];
+  multiHistory: MultiCurrencyHistory[];
 }
 
 export interface HistoryPoint {
@@ -12,7 +14,25 @@ export interface HistoryPoint {
 
 export enum Currency {
   USD = 'USD',
-  KRW = 'KRW'
+  KRW = 'KRW',
+  EUR = 'EUR',
+  JPY = 'JPY',
+  CNY = 'CNY'
+}
+
+export interface MultiCurrencyRates {
+  KRW: number;
+  EUR: number;
+  JPY: number;
+  CNY: number;
+}
+
+export interface MultiCurrencyHistory {
+  date: string;
+  KRW: number;
+  EUR?: number;
+  JPY?: number;
+  CNY?: number;
 }
 
 export interface RateStatistics {

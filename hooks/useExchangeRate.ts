@@ -1,15 +1,14 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { ExchangeData, HistoryPoint } from '../types';
+import { ExchangeData, HistoryPoint, MultiCurrencyRates, MultiCurrencyHistory } from '../types';
 
 const HISTORY_DAYS = 30;
+const CURRENCIES_PARAM = 'KRW,EUR,JPY,CNY';
 
 interface FrankfurterLatestResponse {
   amount: number;
   base: string;
   date: string;
-  rates: {
-    KRW?: number;
-  };
+  rates: Partial<MultiCurrencyRates>;
 }
 
 interface FrankfurterTimeseriesResponse {
@@ -17,7 +16,7 @@ interface FrankfurterTimeseriesResponse {
   base: string;
   start_date: string;
   end_date: string;
-  rates: Record<string, { KRW: number }>;
+  rates: Record<string, Partial<MultiCurrencyRates>>;
 }
 
 function isValidLatestResponse(data: unknown): data is FrankfurterLatestResponse {
@@ -87,8 +86,8 @@ export function useExchangeRate(): UseExchangeRateReturn {
       const endDateStr = formatDateString(endDate);
       
       const [latestRes, historyRes] = await Promise.all([
-        fetch('https://api.frankfurter.app/latest?from=USD&to=KRW'),
-        fetch(`https://api.frankfurter.app/${startDateStr}..${endDateStr}?from=USD&to=KRW`)
+        fetch(`https://api.frankfurter.app/latest?from=USD&to=${CURRENCIES_PARAM}`),
+        fetch(`https://api.frankfurter.app/${startDateStr}..${endDateStr}?from=USD&to=${CURRENCIES_PARAM}`)
       ]);
       
       if (!latestRes.ok || !historyRes.ok) {
@@ -118,14 +117,32 @@ export function useExchangeRate(): UseExchangeRateReturn {
         .filter(([, rates]) => rates && typeof rates.KRW === 'number')
         .map(([date, rates]) => ({
           date,
-          rate: rates.KRW
+          rate: rates.KRW!
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+      
+      const multiHistory: MultiCurrencyHistory[] = Object.entries(historyJson.rates)
+        .filter(([, rates]) => rates && typeof rates.KRW === 'number')
+        .map(([date, rates]) => ({
+          date,
+          KRW: rates.KRW!,
+          EUR: rates.EUR,
+          JPY: rates.JPY,
+          CNY: rates.CNY
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
       
       setData({
         rate: latestJson.rates.KRW!,
+        rates: {
+          KRW: latestJson.rates.KRW!,
+          EUR: latestJson.rates.EUR || 0,
+          JPY: latestJson.rates.JPY || 0,
+          CNY: latestJson.rates.CNY || 0
+        },
         lastUpdate: new Date().toLocaleString('ko-KR'),
-        history
+        history,
+        multiHistory
       });
     } catch (err) {
       setError(getErrorMessage(err));
