@@ -66,14 +66,14 @@ export const Converter: React.FC<Props> = ({ baseRate }) => {
 
   return (
     <div className="space-y-4">
-      <div className="relative">
+      <div>
         <label 
           htmlFor="converter-amount"
           className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider"
         >
           보내는 금액
         </label>
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <input
             id="converter-amount"
             type="number"
@@ -84,15 +84,15 @@ export const Converter: React.FC<Props> = ({ baseRate }) => {
             step="any"
             aria-label={`${fromCurrency} 금액 입력`}
             aria-describedby="converter-rate-info"
-            className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
+            className="flex-1 min-w-0 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
             placeholder="0.00"
           />
-          <div className="absolute right-3 flex items-center gap-2 bg-white dark:bg-slate-600 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-500 shadow-sm">
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{fromCurrency}</span>
+          <div className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 bg-white dark:bg-slate-600 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-slate-200 dark:border-slate-500 shadow-sm">
+            <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200">{fromCurrency}</span>
             <img 
               src={fromCurrency === Currency.USD ? "https://flagcdn.com/w20/us.png" : "https://flagcdn.com/w20/kr.png"} 
               alt={`${fromCurrency} 국기`}
-              className="w-5 h-auto rounded-sm"
+              className="w-4 sm:w-5 h-auto rounded-sm"
             />
           </div>
         </div>
@@ -110,25 +110,25 @@ export const Converter: React.FC<Props> = ({ baseRate }) => {
         </button>
       </div>
 
-      <div className="relative">
+      <div>
         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
           받는 금액
         </label>
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <div 
             role="status"
             aria-live="polite"
             aria-label={`변환 결과: ${result.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${toCurrency}`}
-            className="w-full bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 rounded-xl px-4 py-3 text-lg font-bold text-blue-900 dark:text-blue-200"
+            className="flex-1 min-w-0 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 rounded-xl px-3 sm:px-4 py-3 text-base sm:text-lg font-bold text-blue-900 dark:text-blue-200 truncate"
           >
             {result.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="absolute right-3 flex items-center gap-2 bg-white dark:bg-slate-600 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-500 shadow-sm">
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{toCurrency}</span>
+          <div className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 bg-white dark:bg-slate-600 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-slate-200 dark:border-slate-500 shadow-sm">
+            <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200">{toCurrency}</span>
             <img 
               src={fromCurrency === Currency.USD ? "https://flagcdn.com/w20/kr.png" : "https://flagcdn.com/w20/us.png"} 
               alt={`${toCurrency} 국기`}
-              className="w-5 h-auto rounded-sm"
+              className="w-4 sm:w-5 h-auto rounded-sm"
             />
           </div>
         </div>

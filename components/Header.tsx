@@ -38,8 +38,8 @@ export const Header: React.FC = () => {
             ₩
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">환율 인사이트</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase">원/달러 분석</p>
+            <h1 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white leading-tight">금융 인사이트</h1>
+            <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase">환율 · 시장지표</p>
           </div>
         </div>
         

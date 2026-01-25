@@ -125,13 +125,13 @@ const App: React.FC = () => {
           </div>
 
           <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 h-full min-h-[500px] flex flex-col">
-              <div className="flex justify-between items-center mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-6 h-full min-h-[400px] sm:min-h-[500px] flex flex-col">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">환율 추이</h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">최근 {period === '7D' ? '7' : '30'}일간의 원/달러 환율 변동 내역입니다.</p>
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100">환율 추이</h2>
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">최근 {period === '7D' ? '7' : '30'}일간의 원/달러 환율 변동 내역입니다.</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <button
                     onClick={handleChartTypeToggle}
                     className="p-2 rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"

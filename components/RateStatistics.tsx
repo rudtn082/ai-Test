@@ -110,7 +110,7 @@ export const RateStatistics: React.FC<Props> = ({ history }) => {
         환율 통계
       </h2>
       
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {statItems.map((item) => (
           <div
             key={item.label}

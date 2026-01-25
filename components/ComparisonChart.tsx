@@ -101,7 +101,7 @@ export const ComparisonChart: React.FC<Props> = ({ data }) => {
         </div>
       </div>
 
-      <div className="h-[300px]">
+      <div className="h-[250px] sm:h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={normalizedData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
