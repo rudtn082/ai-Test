@@ -88,7 +88,7 @@ describe('useExchangeRate', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.error).toBe('유효하지 않은 환율 데이터입니다.');
+    expect(result.current.error).toBe('유효하지 않은 히스토리 데이터입니다.');
   });
 
   it('should change period', async () => {

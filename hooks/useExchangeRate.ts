@@ -4,11 +4,18 @@ import { ExchangeData, HistoryPoint, MultiCurrencyRates, MultiCurrencyHistory } 
 const HISTORY_DAYS = 30;
 const CURRENCIES_PARAM = 'KRW,EUR,JPY,CNY';
 
-interface FrankfurterLatestResponse {
-  amount: number;
-  base: string;
-  date: string;
-  rates: Partial<MultiCurrencyRates>;
+// Yahoo Finance API response type
+interface YahooChartResponse {
+  chart: {
+    result: Array<{
+      meta: {
+        regularMarketPrice: number;
+        chartPreviousClose: number;
+        previousClose: number;
+      };
+    }> | null;
+    error: { code: string; description: string } | null;
+  };
 }
 
 interface FrankfurterTimeseriesResponse {
@@ -19,19 +26,46 @@ interface FrankfurterTimeseriesResponse {
   rates: Record<string, Partial<MultiCurrencyRates>>;
 }
 
-function isValidLatestResponse(data: unknown): data is FrankfurterLatestResponse {
+function isValidYahooResponse(data: unknown): data is YahooChartResponse {
   if (!data || typeof data !== 'object') return false;
   const obj = data as Record<string, unknown>;
-  return typeof obj.date === 'string' && 
-         typeof obj.rates === 'object' && 
-         obj.rates !== null &&
-         typeof (obj.rates as Record<string, unknown>).KRW === 'number';
+  if (!obj.chart || typeof obj.chart !== 'object') return false;
+  const chart = obj.chart as Record<string, unknown>;
+  return Array.isArray(chart.result) && chart.result.length > 0;
 }
 
 function isValidTimeseriesResponse(data: unknown): data is FrankfurterTimeseriesResponse {
   if (!data || typeof data !== 'object') return false;
   const obj = data as Record<string, unknown>;
   return typeof obj.rates === 'object' && obj.rates !== null;
+}
+
+// Fetch real-time rate from Yahoo Finance with CORS proxy fallback
+async function fetchYahooRate(symbol: string): Promise<number | null> {
+  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
+  
+  const proxies = [
+    `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yahooUrl)}`,
+  ];
+  
+  for (const proxyUrl of proxies) {
+    try {
+      const res = await fetch(proxyUrl);
+      if (!res.ok) continue;
+      
+      const data: unknown = await res.json();
+      if (!isValidYahooResponse(data) || !data.chart.result) continue;
+      
+      const result = data.chart.result[0];
+      return result.meta.regularMarketPrice;
+    } catch {
+      continue;
+    }
+  }
+  
+  return null;
 }
 
 function formatDateString(date: Date): string {
@@ -85,28 +119,23 @@ export function useExchangeRate(): UseExchangeRateReturn {
       const startDateStr = formatDateString(startDate);
       const endDateStr = formatDateString(endDate);
       
-      const [latestRes, historyRes] = await Promise.all([
-        fetch(`https://api.frankfurter.app/latest?from=USD&to=${CURRENCIES_PARAM}`),
+      const [yahooKrwRate, yahooEurRate, yahooJpyRate, yahooCnyRate, historyRes] = await Promise.all([
+        fetchYahooRate('USDKRW=X'),
+        fetchYahooRate('USDEUR=X'),
+        fetchYahooRate('USDJPY=X'),
+        fetchYahooRate('USDCNY=X'),
         fetch(`https://api.frankfurter.app/${startDateStr}..${endDateStr}?from=USD&to=${CURRENCIES_PARAM}`)
       ]);
       
-      if (!latestRes.ok || !historyRes.ok) {
-        throw new Error(`서버 오류가 발생했습니다.`);
+      if (!historyRes.ok) {
+        throw new Error('히스토리 데이터를 불러올 수 없습니다.');
       }
       
-      let latestJson: unknown;
       let historyJson: unknown;
       try {
-        [latestJson, historyJson] = await Promise.all([
-          latestRes.json(),
-          historyRes.json()
-        ]);
+        historyJson = await historyRes.json();
       } catch {
         throw new Error('서버 응답을 처리할 수 없습니다.');
-      }
-      
-      if (!isValidLatestResponse(latestJson)) {
-        throw new Error('유효하지 않은 환율 데이터입니다.');
       }
       
       if (!isValidTimeseriesResponse(historyJson)) {
@@ -132,13 +161,20 @@ export function useExchangeRate(): UseExchangeRateReturn {
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
       
+      const lastHistoryRate = history.length > 0 ? history[history.length - 1].rate : 0;
+      const krwRate = yahooKrwRate ?? lastHistoryRate;
+      
+      if (!krwRate) {
+        throw new Error('환율 데이터를 불러올 수 없습니다.');
+      }
+      
       setData({
-        rate: latestJson.rates.KRW!,
+        rate: krwRate,
         rates: {
-          KRW: latestJson.rates.KRW!,
-          EUR: latestJson.rates.EUR || 0,
-          JPY: latestJson.rates.JPY || 0,
-          CNY: latestJson.rates.CNY || 0
+          KRW: krwRate,
+          EUR: yahooEurRate ?? 0,
+          JPY: yahooJpyRate ?? 0,
+          CNY: yahooCnyRate ?? 0
         },
         lastUpdate: new Date().toLocaleString('ko-KR'),
         history,
