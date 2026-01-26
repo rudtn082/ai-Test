@@ -193,7 +193,16 @@ export function useExchangeRate(): UseExchangeRateReturn {
 
   const filteredHistory = useMemo(() => {
     if (!data) return [];
-    return period === '7D' ? data.history.slice(-7) : data.history;
+    
+    const baseHistory = period === '7D' ? data.history.slice(-7) : data.history;
+    const today = formatDateString(new Date());
+    const lastHistoryDate = baseHistory.length > 0 ? baseHistory[baseHistory.length - 1].date : null;
+    
+    if (lastHistoryDate !== today && data.rate) {
+      return [...baseHistory, { date: today, rate: data.rate }];
+    }
+    
+    return baseHistory;
   }, [data, period]);
 
   const handlePeriodChange = useCallback((newPeriod: Period) => {
