@@ -80,20 +80,3 @@ export interface OHLCData {
   low: number;
   close: number;
 }
-
-// Correlation Types
-export type CorrelationIndicator = 'KRW' | 'WTI' | 'KOSPI' | 'Gold';
-
-export interface CorrelationCell {
-  row: CorrelationIndicator;
-  col: CorrelationIndicator;
-  value: number;
-}
-
-export type CorrelationMatrix = CorrelationCell[][];
-
-// Multi-line Overlay Types
-export interface NormalizedDataPoint {
-  date: string;
-  [key: string]: string | number;
-}
