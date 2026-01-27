@@ -1,19 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { MarketIndicator, ExtendedMarketData } from '../types';
 
-export interface MarketData {
-  wti: {
-    price: number;
-    change: number;
-    changePercent: number;
-    previousClose: number;
-  } | null;
-  kospi: {
-    price: number;
-    change: number;
-    changePercent: number;
-    previousClose: number;
-  } | null;
-  lastUpdate: string;
+export type { ExtendedMarketData as MarketData };
+
+interface MarketDataResult {
+  price: number;
+  previousClose: number;
 }
 
 interface YahooChartResponse {
@@ -71,10 +63,37 @@ async function fetchYahooData(symbol: string): Promise<{ price: number; previous
   return null;
 }
 
+function toMarketIndicator(result: MarketDataResult | null): MarketIndicator | null {
+  if (!result) return null;
+  const change = result.price - result.previousClose;
+  const changePercent = (change / result.previousClose) * 100;
+  return {
+    price: result.price,
+    change,
+    changePercent,
+    previousClose: result.previousClose
+  };
+}
+
+const SYMBOLS = {
+  wti: 'CL=F',
+  kospi: '^KS11',
+  gold: 'GC=F',
+  bitcoin: 'BTC-USD',
+  treasury10y: '^TNX',
+  nasdaq: '^IXIC',
+  sp500: '^GSPC'
+} as const;
+
 export function useMarketData() {
-  const [data, setData] = useState<MarketData>({
+  const [data, setData] = useState<ExtendedMarketData>({
     wti: null,
     kospi: null,
+    gold: null,
+    bitcoin: null,
+    treasury10y: null,
+    nasdaq: null,
+    sp500: null,
     lastUpdate: ''
   });
   const [loading, setLoading] = useState(true);
@@ -85,40 +104,32 @@ export function useMarketData() {
     setError(null);
 
     try {
-      const [wtiResult, kospiResult] = await Promise.all([
-        fetchYahooData('CL=F'),
-        fetchYahooData('^KS11')
+      const [wtiResult, kospiResult, goldResult, bitcoinResult, treasuryResult, nasdaqResult, sp500Result] = await Promise.all([
+        fetchYahooData(SYMBOLS.wti),
+        fetchYahooData(SYMBOLS.kospi),
+        fetchYahooData(SYMBOLS.gold),
+        fetchYahooData(SYMBOLS.bitcoin),
+        fetchYahooData(SYMBOLS.treasury10y),
+        fetchYahooData(SYMBOLS.nasdaq),
+        fetchYahooData(SYMBOLS.sp500)
       ]);
 
-      const newData: MarketData = {
-        wti: null,
-        kospi: null,
+      const newData: ExtendedMarketData = {
+        wti: toMarketIndicator(wtiResult),
+        kospi: toMarketIndicator(kospiResult),
+        gold: toMarketIndicator(goldResult),
+        bitcoin: toMarketIndicator(bitcoinResult),
+        treasury10y: toMarketIndicator(treasuryResult),
+        nasdaq: toMarketIndicator(nasdaqResult),
+        sp500: toMarketIndicator(sp500Result),
         lastUpdate: new Date().toLocaleString('ko-KR')
       };
 
-      if (wtiResult) {
-        const change = wtiResult.price - wtiResult.previousClose;
-        const changePercent = (change / wtiResult.previousClose) * 100;
-        newData.wti = {
-          price: wtiResult.price,
-          change,
-          changePercent,
-          previousClose: wtiResult.previousClose
-        };
-      }
+      const hasAnyData = Object.entries(newData)
+        .filter(([key]) => key !== 'lastUpdate')
+        .some(([, value]) => value !== null);
 
-      if (kospiResult) {
-        const change = kospiResult.price - kospiResult.previousClose;
-        const changePercent = (change / kospiResult.previousClose) * 100;
-        newData.kospi = {
-          price: kospiResult.price,
-          change,
-          changePercent,
-          previousClose: kospiResult.previousClose
-        };
-      }
-
-      if (!newData.wti && !newData.kospi) {
+      if (!hasAnyData) {
         setError('시장 데이터를 불러올 수 없습니다.');
       } else {
         setData(newData);

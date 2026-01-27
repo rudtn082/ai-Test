@@ -7,12 +7,16 @@ import { AppSkeleton, ChartSkeleton, StatisticsSkeleton, NewsSkeleton } from './
 import { ToastContainer } from './components/Toast';
 import { useExchangeRate } from './hooks/useExchangeRate';
 import { useMarketData } from './hooks/useMarketData';
+import { useOHLCData } from './hooks/useOHLCData';
 import { useToast } from './hooks/useToast';
 
 const HistoryChart = lazy(() => import('./components/HistoryChart').then(m => ({ default: m.HistoryChart })));
 const RateStatistics = lazy(() => import('./components/RateStatistics').then(m => ({ default: m.RateStatistics })));
 const ExchangeNews = lazy(() => import('./components/ExchangeNews').then(m => ({ default: m.ExchangeNews })));
 const ComparisonChart = lazy(() => import('./components/ComparisonChart').then(m => ({ default: m.ComparisonChart })));
+const CandlestickChart = lazy(() => import('./components/CandlestickChart').then(m => ({ default: m.CandlestickChart })));
+const CorrelationHeatmap = lazy(() => import('./components/CorrelationHeatmap').then(m => ({ default: m.CorrelationHeatmap })));
+const MultiLineOverlay = lazy(() => import('./components/MultiLineOverlay').then(m => ({ default: m.MultiLineOverlay })));
 
 const App: React.FC = () => {
   const {
@@ -33,6 +37,11 @@ const App: React.FC = () => {
     error: marketError, 
     refetch: refetchMarket 
   } = useMarketData();
+
+  const { 
+    data: ohlcData, 
+    loading: ohlcLoading 
+  } = useOHLCData();
 
   const { toasts, addToast, removeToast } = useToast();
 
@@ -190,7 +199,32 @@ const App: React.FC = () => {
 
         <div className="mt-8">
           <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 h-[400px] animate-pulse" />}>
+            {!ohlcLoading && ohlcData.length > 0 && <CandlestickChart data={ohlcData} />}
+          </Suspense>
+        </div>
+
+        <div className="mt-8">
+          <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 h-[400px] animate-pulse" />}>
             <ComparisonChart data={data.multiHistory} />
+          </Suspense>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 h-[350px] animate-pulse" />}>
+            <CorrelationHeatmap 
+              krwHistory={data.history.map(h => h.rate)}
+              wtiHistory={[]}
+              kospiHistory={[]}
+              goldHistory={[]}
+            />
+          </Suspense>
+          <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 h-[350px] animate-pulse" />}>
+            <MultiLineOverlay 
+              krwHistory={data.history.map(h => ({ date: h.date, value: h.rate }))}
+              wtiHistory={[]}
+              kospiHistory={[]}
+              goldHistory={[]}
+            />
           </Suspense>
         </div>
 
