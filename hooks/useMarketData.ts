@@ -52,7 +52,10 @@ async function fetchYahooData(symbol: string): Promise<{ price: number; previous
       
       const result = data.chart.result[0];
       const price = result.meta.regularMarketPrice;
-      const previousClose = result.meta.chartPreviousClose;
+      const closes = result.indicators.quote[0].close;
+      const previousClose = closes.length >= 2 
+        ? closes[closes.length - 2] 
+        : result.meta.chartPreviousClose;
       
       return { price, previousClose };
     } catch {

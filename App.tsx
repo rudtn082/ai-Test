@@ -232,18 +232,18 @@ const App: React.FC = () => {
         </div>
 
         <div className="mt-8">
+          <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 h-[400px] animate-pulse" />}>
+            {!ohlcLoading && ohlcData.length > 0 && <CandlestickChart data={ohlcData} />}
+          </Suspense>
+        </div>
+
+        <div className="mt-8">
           <MarketIndicators 
             data={marketData} 
             loading={marketLoading} 
             error={marketError} 
             onRetry={refetchMarket} 
           />
-        </div>
-
-        <div className="mt-8">
-          <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 h-[400px] animate-pulse" />}>
-            {!ohlcLoading && ohlcData.length > 0 && <CandlestickChart data={ohlcData} />}
-          </Suspense>
         </div>
 
         <div className="mt-8">
