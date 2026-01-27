@@ -7,8 +7,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
-  ReferenceLine
+  Cell
 } from 'recharts';
 import type { OHLCData } from '../types';
 
@@ -22,11 +21,69 @@ interface CandlestickDataPoint {
   high: number;
   low: number;
   close: number;
-  bodyBottom: number;
-  bodyHeight: number;
-  wickLow: number;
-  wickHigh: number;
+  openClose: [number, number];
   isPositive: boolean;
+}
+
+interface CandlestickShapeProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  payload?: CandlestickDataPoint;
+  fill?: string;
+}
+
+function CandlestickShape({ x, y, width, height, payload, fill }: CandlestickShapeProps): React.ReactElement | null {
+  if (x === undefined || y === undefined || !width || !height || !payload) {
+    return null;
+  }
+  
+  const { high, low, openClose } = payload;
+  const bodyBottom = openClose[0];
+  const bodyTop = openClose[1];
+  const barCenterX = x + width / 2;
+  
+  const bodyValueRange = bodyTop - bodyBottom;
+  if (bodyValueRange === 0) {
+    return (
+      <g>
+        <rect x={x} y={y} width={width} height={Math.max(height, 2)} fill={fill} />
+      </g>
+    );
+  }
+  
+  const pixelsPerValue = height / bodyValueRange;
+  const wickTopLength = (high - bodyTop) * pixelsPerValue;
+  const wickBottomLength = (bodyBottom - low) * pixelsPerValue;
+  
+  return (
+    <g>
+      <line
+        x1={barCenterX}
+        y1={y - wickTopLength}
+        x2={barCenterX}
+        y2={y}
+        stroke={fill}
+        strokeWidth={1.5}
+      />
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill={fill}
+      />
+      <line
+        x1={barCenterX}
+        y1={y + height}
+        x2={barCenterX}
+        y2={y + height + wickBottomLength}
+        stroke={fill}
+        strokeWidth={1.5}
+      />
+    </g>
+  );
 }
 
 interface TooltipProps {
@@ -73,15 +130,12 @@ export const CandlestickChart: React.FC<Props> = memo(function CandlestickChart(
   const chartData = useMemo<CandlestickDataPoint[]>(() => {
     return filteredData.map(item => {
       const isPositive = item.close >= item.open;
+      const bodyTop = Math.max(item.open, item.close);
       const bodyBottom = Math.min(item.open, item.close);
-      const bodyHeight = Math.abs(item.close - item.open);
       
       return {
         ...item,
-        bodyBottom,
-        bodyHeight: bodyHeight || 0.5,
-        wickLow: item.low,
-        wickHigh: item.high,
+        openClose: [bodyBottom, bodyTop] as [number, number],
         isPositive
       };
     });
@@ -143,7 +197,7 @@ export const CandlestickChart: React.FC<Props> = memo(function CandlestickChart(
 
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+          <ComposedChart data={chartData} margin={{ top: 10, right: 50, left: 10, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
             <XAxis 
               dataKey="date" 
@@ -163,22 +217,10 @@ export const CandlestickChart: React.FC<Props> = memo(function CandlestickChart(
             />
             <Tooltip content={<CustomTooltip />} />
             
-            {chartData.map((entry, index) => (
-              <ReferenceLine
-                key={`wick-${index}`}
-                segment={[
-                  { x: entry.date, y: entry.wickLow },
-                  { x: entry.date, y: entry.wickHigh }
-                ]}
-                stroke={entry.isPositive ? '#dc2626' : '#2563eb'}
-                strokeWidth={1}
-              />
-            ))}
-            
             <Bar
-              dataKey="bodyHeight"
-              stackId="candle"
-              barSize={8}
+              dataKey="openClose"
+              barSize={12}
+              shape={(props: unknown) => <CandlestickShape {...(props as CandlestickShapeProps)} />}
             >
               {chartData.map((entry, index) => (
                 <Cell 
