@@ -1,6 +1,7 @@
 
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useState, useCallback } from 'react';
 import { Header } from './components/Header';
+import { Footer } from './components/Footer';
 import { Converter } from './components/Converter';
 import { MarketIndicators } from './components/MarketIndicators';
 import { AppSkeleton, ChartSkeleton, StatisticsSkeleton, NewsSkeleton } from './components/Skeleton';
@@ -15,8 +16,7 @@ const RateStatistics = lazy(() => import('./components/RateStatistics').then(m =
 const ExchangeNews = lazy(() => import('./components/ExchangeNews').then(m => ({ default: m.ExchangeNews })));
 const ComparisonChart = lazy(() => import('./components/ComparisonChart').then(m => ({ default: m.ComparisonChart })));
 const CandlestickChart = lazy(() => import('./components/CandlestickChart').then(m => ({ default: m.CandlestickChart })));
-const CorrelationHeatmap = lazy(() => import('./components/CorrelationHeatmap').then(m => ({ default: m.CorrelationHeatmap })));
-const MultiLineOverlay = lazy(() => import('./components/MultiLineOverlay').then(m => ({ default: m.MultiLineOverlay })));
+
 
 const App: React.FC = () => {
   const {
@@ -44,6 +44,17 @@ const App: React.FC = () => {
   } = useOHLCData();
 
   const { toasts, addToast, removeToast } = useToast();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshAll = useCallback(async () => {
+    setIsRefreshing(true);
+    addToast('데이터를 새로고침하는 중...', 'info');
+    
+    await Promise.all([fetchData(), refetchMarket()]);
+    
+    addToast('데이터를 성공적으로 불러왔습니다.', 'success');
+    setIsRefreshing(false);
+  }, [fetchData, refetchMarket, addToast]);
 
   const handleRetry = async () => {
     addToast('환율 정보를 다시 불러오는 중...', 'info');
@@ -88,8 +99,8 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 pb-12">
-      <Header />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col">
+      <Header onRefresh={handleRefreshAll} isRefreshing={isRefreshing} />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -106,17 +117,47 @@ const App: React.FC = () => {
               
               <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
                 <p className="text-xs text-slate-400 dark:text-slate-500">마지막 업데이트: {data.lastUpdate}</p>
-                <div className="mt-4 bg-blue-50 dark:bg-blue-900/30 p-4 rounded-xl flex justify-between items-center">
-                  <div>
-                    <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase">현재 환율 (1 USD)</p>
-                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{data.rate.toLocaleString('ko-KR')} KRW</p>
+                <div className="mt-4 bg-blue-50 dark:bg-blue-900/30 p-4 rounded-xl">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase">현재 환율 (1 USD)</p>
+                      <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{data.rate.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-base font-medium">KRW</span></p>
+                    </div>
+                    <div className="text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-700 p-2 rounded-lg shadow-sm">
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.514 1.31c.356.412.96.816 1.857 1.123.446.152.92.213 1.383.18V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.514-1.31c-.356-.412-.96-.816-1.857-1.123A4.493 4.493 0 0011 5.092V5z" clipRule="evenodd" />
+                      </svg>
+                    </div>
                   </div>
-                  <div className="text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-700 p-2 rounded-lg shadow-sm">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.514 1.31c.356.412.96.816 1.857 1.123.446.152.92.213 1.383.18V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.514-1.31c-.356-.412-.96-.816-1.857-1.123A4.493 4.493 0 0011 5.092V5z" clipRule="evenodd" />
-                    </svg>
-                  </div>
+                  {data.change !== 0 && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold ${
+                        data.change >= 0 
+                          ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300' 
+                          : 'bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-300'
+                      }`}>
+                        {data.change >= 0 ? (
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                          </svg>
+                        ) : (
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                          </svg>
+                        )}
+                        {data.change >= 0 ? '+' : ''}{data.change.toFixed(2)}
+                      </span>
+                      <span className={`text-xs font-medium ${
+                        data.change >= 0 
+                          ? 'text-red-600 dark:text-red-400' 
+                          : 'text-blue-600 dark:text-blue-400'
+                      }`}>
+                        ({data.changePercent >= 0 ? '+' : ''}{data.changePercent.toFixed(2)}%)
+                      </span>
+                      <span className="text-xs text-slate-400 dark:text-slate-500">전일대비</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -124,13 +165,6 @@ const App: React.FC = () => {
             <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6"><StatisticsSkeleton /></div>}>
               <RateStatistics history={filteredHistory} />
             </Suspense>
-
-            <MarketIndicators 
-              data={marketData} 
-              loading={marketLoading} 
-              error={marketError} 
-              onRetry={refetchMarket} 
-            />
           </div>
 
           <div className="lg:col-span-2 space-y-8">
@@ -198,6 +232,15 @@ const App: React.FC = () => {
         </div>
 
         <div className="mt-8">
+          <MarketIndicators 
+            data={marketData} 
+            loading={marketLoading} 
+            error={marketError} 
+            onRetry={refetchMarket} 
+          />
+        </div>
+
+        <div className="mt-8">
           <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 h-[400px] animate-pulse" />}>
             {!ohlcLoading && ohlcData.length > 0 && <CandlestickChart data={ohlcData} />}
           </Suspense>
@@ -209,24 +252,7 @@ const App: React.FC = () => {
           </Suspense>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 h-[350px] animate-pulse" />}>
-            <CorrelationHeatmap 
-              krwHistory={data.history.map(h => h.rate)}
-              wtiHistory={[]}
-              kospiHistory={[]}
-              goldHistory={[]}
-            />
-          </Suspense>
-          <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 h-[350px] animate-pulse" />}>
-            <MultiLineOverlay 
-              krwHistory={data.history.map(h => ({ date: h.date, value: h.rate }))}
-              wtiHistory={[]}
-              kospiHistory={[]}
-              goldHistory={[]}
-            />
-          </Suspense>
-        </div>
+
 
         <div className="mt-8">
           <Suspense fallback={<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6"><NewsSkeleton /></div>}>
@@ -235,6 +261,7 @@ const App: React.FC = () => {
         </div>
       </main>
       
+      <Footer />
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );

@@ -40,8 +40,13 @@ function isValidTimeseriesResponse(data: unknown): data is FrankfurterTimeseries
   return typeof obj.rates === 'object' && obj.rates !== null;
 }
 
+interface YahooRateResult {
+  price: number;
+  previousClose: number;
+}
+
 // Fetch real-time rate from Yahoo Finance with CORS proxy fallback
-async function fetchYahooRate(symbol: string): Promise<number | null> {
+async function fetchYahooRate(symbol: string): Promise<YahooRateResult | null> {
   const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
   
   const proxies = [
@@ -59,7 +64,10 @@ async function fetchYahooRate(symbol: string): Promise<number | null> {
       if (!isValidYahooResponse(data) || !data.chart.result) continue;
       
       const result = data.chart.result[0];
-      return result.meta.regularMarketPrice;
+      return {
+        price: result.meta.regularMarketPrice,
+        previousClose: result.meta.chartPreviousClose ?? result.meta.previousClose ?? result.meta.regularMarketPrice
+      };
     } catch {
       continue;
     }
@@ -162,19 +170,26 @@ export function useExchangeRate(): UseExchangeRateReturn {
         .sort((a, b) => a.date.localeCompare(b.date));
       
       const lastHistoryRate = history.length > 0 ? history[history.length - 1].rate : 0;
-      const krwRate = yahooKrwRate ?? lastHistoryRate;
+      const krwRate = yahooKrwRate?.price ?? lastHistoryRate;
+      const krwPreviousClose = yahooKrwRate?.previousClose ?? lastHistoryRate;
       
       if (!krwRate) {
         throw new Error('환율 데이터를 불러올 수 없습니다.');
       }
       
+      const change = krwRate - krwPreviousClose;
+      const changePercent = krwPreviousClose ? (change / krwPreviousClose) * 100 : 0;
+      
       setData({
         rate: krwRate,
+        previousClose: krwPreviousClose,
+        change,
+        changePercent,
         rates: {
           KRW: krwRate,
-          EUR: yahooEurRate ?? 0,
-          JPY: yahooJpyRate ?? 0,
-          CNY: yahooCnyRate ?? 0
+          EUR: yahooEurRate?.price ?? 0,
+          JPY: yahooJpyRate?.price ?? 0,
+          CNY: yahooCnyRate?.price ?? 0
         },
         lastUpdate: new Date().toLocaleString('ko-KR'),
         history,

@@ -3,6 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 type Theme = 'light' | 'dark';
 
+interface HeaderProps {
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
+}
+
 function getInitialTheme(): Theme {
   if (typeof window === 'undefined') return 'light';
   const stored = localStorage.getItem('theme') as Theme | null;
@@ -10,7 +15,7 @@ function getInitialTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-export const Header: React.FC = () => {
+export const Header: React.FC<HeaderProps> = ({ onRefresh, isRefreshing = false }) => {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
@@ -43,17 +48,24 @@ export const Header: React.FC = () => {
           </div>
         </div>
         
-        <nav className="hidden md:flex gap-6" aria-label="메인 네비게이션">
-          <a 
-            href="#dashboard" 
-            className="text-sm font-semibold text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 pb-1"
-            aria-current="page"
-          >
-            대시보드
-          </a>
-        </nav>
-
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-2 items-center">
+          {onRefresh && (
+            <button 
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="데이터 새로고침"
+            >
+              <svg 
+                className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          )}
           <button 
             onClick={toggleTheme}
             className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"

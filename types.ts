@@ -1,6 +1,9 @@
 
 export interface ExchangeData {
   rate: number;
+  previousClose: number;
+  change: number;
+  changePercent: number;
   rates: MultiCurrencyRates;
   lastUpdate: string;
   history: HistoryPoint[];
