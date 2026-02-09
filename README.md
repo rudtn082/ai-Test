@@ -18,6 +18,7 @@
 - **실시간 환율 조회** - frankfurter.app API를 통한 실시간 USD/KRW 환율 정보
 - **양방향 통화 변환기** - USD ↔ KRW 간편 환전 계산
 - **환율 추이 차트** - 최근 7일/30일 실제 환율 변동 그래프 (Area/Bar 차트)
+- **캔들스틱 차트** - OHLC(시가/고가/저가/종가) 캔들스틱 차트 (7일/30일 선택 가능)
 - **환율 통계** - 최고/최저/평균/변동률 통계 카드
 - **다중 통화 비교** - EUR, JPY, CNY 등 주요 통화 대비 상대적 변동률 비교 차트
 - **환율 뉴스** - Google News RSS를 통한 최신 환율 관련 뉴스 5개 표시
@@ -82,10 +83,12 @@ npm run preview
 ```
 ai-Test/
 ├── components/              # React components
+│   ├── CandlestickChart.tsx # OHLC candlestick chart
 │   ├── ComparisonChart.tsx  # Multi-currency comparison chart
 │   ├── Converter.tsx        # Currency converter
 │   ├── ErrorBoundary.tsx    # Error boundary wrapper
 │   ├── ExchangeNews.tsx     # Exchange rate news from RSS
+│   ├── Footer.tsx           # Page footer with data sources
 │   ├── Header.tsx           # App header with dark mode toggle
 │   ├── HistoryChart.tsx     # Exchange rate history chart
 │   ├── RateStatistics.tsx   # Rate statistics cards
@@ -95,12 +98,15 @@ ai-Test/
 ├── hooks/                   # Custom React hooks
 │   ├── useExchangeRate.ts   # Exchange rate data fetching & state
 │   ├── useMarketData.ts     # WTI and KOSPI data fetching
+│   ├── useOHLCData.ts       # OHLC candlestick data fetching
 │   └── useToast.ts          # Toast state management
 ├── test/                    # Test files
 │   ├── setup.ts             # Test configuration
 │   ├── Converter.test.tsx
 │   ├── useExchangeRate.test.ts
-│   └── useToast.test.ts
+│   ├── useToast.test.ts
+│   ├── useOHLCData.test.ts
+│   └── useMarketData.test.ts
 ├── App.tsx                  # Main application component
 ├── index.tsx                # Application entry point
 ├── types.ts                 # TypeScript type definitions
@@ -133,6 +139,7 @@ The application uses React.lazy() for code splitting:
 - `RateStatistics` - Loaded with statistics data
 - `ComparisonChart` - Loaded for multi-currency comparison
 - `ExchangeNews` - Loaded for news section
+- `CandlestickChart` - Loaded for OHLC candlestick chart
 
 ## Testing
 
@@ -153,6 +160,8 @@ npm run test:coverage
 
 - `useExchangeRate` hook - API fetching, error handling, state management
 - `useToast` hook - Toast lifecycle, auto-dismiss, manual removal
+- `useOHLCData` hook - OHLC data fetching and period filtering
+- `useMarketData` hook - WTI oil price and KOSPI index fetching
 - `Converter` component - Currency conversion, input validation
 
 ## Security

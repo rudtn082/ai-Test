@@ -21,10 +21,12 @@ This is a KRW/USD exchange rate application built with React 19, Vite, and TypeS
 ```
 ai-Test/
 ├── components/              # React components
+│   ├── CandlestickChart.tsx # OHLC candlestick chart (lazy loaded)
 │   ├── ComparisonChart.tsx  # Multi-currency comparison chart (lazy loaded)
 │   ├── Converter.tsx        # Bidirectional currency converter
 │   ├── ErrorBoundary.tsx    # Error boundary wrapper
 │   ├── ExchangeNews.tsx     # Exchange rate news from Google RSS (lazy loaded)
+│   ├── Footer.tsx           # Page footer with data sources
 │   ├── Header.tsx           # App header with dark mode toggle
 │   ├── HistoryChart.tsx     # Exchange rate chart (lazy loaded)
 │   ├── RateStatistics.tsx   # Rate statistics cards (lazy loaded)
@@ -34,6 +36,7 @@ ai-Test/
 ├── hooks/                   # Custom React hooks
 │   ├── useExchangeRate.ts   # Exchange rate data fetching & state
 │   ├── useMarketData.ts     # WTI and KOSPI data fetching
+│   ├── useOHLCData.ts       # OHLC candlestick data fetching
 │   └── useToast.ts          # Toast state management
 ├── test/                    # Vitest test files
 ├── App.tsx                  # Main application component
@@ -56,6 +59,9 @@ ai-Test/
 - `components/Skeleton.tsx` - Loading skeleton components for better UX
 - `components/Toast.tsx` - Toast notification system with 4 types (success/error/warning/info)
 - `components/ErrorBoundary.tsx` - Error boundary for graceful error handling
+- `components/CandlestickChart.tsx` - OHLC candlestick chart with 7D/30D period selector (lazy loaded)
+- `hooks/useOHLCData.ts` - Custom hook for fetching OHLC (Open/High/Low/Close) data
+- `components/Footer.tsx` - Page footer with data source attributions and disclaimer
 
 ### Data Flow
 
@@ -75,6 +81,7 @@ All shared types are in `types.ts`:
 - `RateStatistics` - Statistics data (high, low, average, changeRate)
 - `NewsItem` - News article data
 - `Currency` enum - Supported currencies (USD, KRW, EUR, JPY, CNY)
+- `OHLCData` - Open/High/Low/Close data point for candlestick chart
 
 ### Code Splitting
 
@@ -83,6 +90,7 @@ The app uses React.lazy() for code splitting:
 - `RateStatistics` - Loaded with statistics data
 - `ComparisonChart` - Loaded for multi-currency comparison
 - `ExchangeNews` - Loaded for news section
+- `CandlestickChart` - Loaded for OHLC candlestick chart
 
 ### Testing
 
